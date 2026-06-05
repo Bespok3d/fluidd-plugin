@@ -1,0 +1,68 @@
+{
+  "name": "fluidd",
+  "title": "Fluidd",
+  "version": "0.1.1",
+  "description": "Swaps SM's outdated Fluidd for the current upstream release. You get input-shaper graphs, integrated config/G-code editors, tool-colour preview, modern mesh viz. Uninstall reverts to the SM-shipped copy automatically via overlayfs; no nginx config touched.",
+  "tagline": "Modern Fluidd v1.37.0: replaces the stock SM build.",
+  "category": "ui",
+  "channel": "stable",
+  "printer_specific": true,
+  "published_at": "2025-10-12",
+  "updated_at": "2026-02-18",
+  "source": "https://github.com/bespok3d-org/plugin-fluidd",
+  "homepage": "https://github.com/bespok3d-org/plugin-fluidd",
+  "publisher": "PLACEHOLDER",
+  "provides": [
+    {
+      "service": "fluidd-ui"
+    }
+  ],
+  "require": [],
+  "conflicts": [],
+  "requires": {
+    "capabilities": [
+      "klipper-generic"
+    ],
+    "variables": [
+      {
+        "name": "FLUIDD_PORT",
+        "description": "HTTP port Fluidd is served on. Auto-assigned; the primary UI uses 80.",
+        "required": false,
+        "default": "80"
+      }
+    ]
+  },
+  "config": [
+    {
+      "key": "FLUIDD_PORT",
+      "label": "Fluidd port",
+      "type": "http-port",
+      "default": "80",
+      "hint": "Auto-assigned. Make Fluidd primary to serve it on port 80.",
+      "userEditable": true
+    }
+  ],
+  "permissions": [
+    "nginx.server"
+  ],
+  "install": {
+    "dirs": [],
+    "symlinks": [
+      {
+        "from": "files/fluidd",
+        "to": "/home/lava/fluidd"
+      }
+    ],
+    "patches": [],
+    "start": []
+  },
+  "stop": [],
+  "endpoints": [
+    {
+      "label": "Fluidd",
+      "path": "/"
+    }
+  ],
+  "conflict_resolutions": [],
+  "files": []
+}
