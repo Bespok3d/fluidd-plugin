@@ -1,3 +1,7 @@
 # Build outputs, never committed.
 dist/
 .DS_Store
+
+# Bleeding-edge channel variant: the built UI is staged from the upstream feature
+# branch for dev-bundle testing, never committed (the manifest + docs are).
+fluidd-bleeding-edge/files/
