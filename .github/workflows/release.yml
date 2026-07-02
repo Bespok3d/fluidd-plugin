@@ -45,6 +45,12 @@ jobs:
             version=$(jq -r '.version' "${dir}manifest.json")
             tag="${name}-v${version}"
             asset="${name}-${version}.b3"
+            # A local-only variant (payload gitignored, e.g. fluidd-bleeding-edge) packs nothing:
+            # no asset means no release and no atom, same rule as scripts/pack.sh.
+            if [ ! -f "dist/${asset}" ]; then
+              echo "Skipped ${id}: no packed asset (local-only variant)"
+              continue
+            fi
             if ! gh release view "$tag" >/dev/null 2>&1; then
               gh release create "$tag" --title "$tag" --notes "Automated release of ${asset}"
             fi
