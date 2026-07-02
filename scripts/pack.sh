@@ -78,6 +78,12 @@ mkdir -p "$DIST_DIR"
 packed=0
 for dir in "$REPO_DIR"/*/; do
   [ -f "${dir}manifest.json" ] || continue
+  # A variant whose payload is not in the repo (fluidd-bleeding-edge stages its built UI
+  # locally, gitignored) is a local-only dev bundle: CI has nothing to pack, skip it.
+  if [ ! -d "${dir}files" ]; then
+    echo "Skipped (no files/ tree, local-only variant): ${dir%/}"
+    continue
+  fi
   pack_one "${dir%/}"
   packed=$((packed + 1))
 done
