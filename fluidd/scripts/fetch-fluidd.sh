@@ -1,6 +1,8 @@
 #!/bin/sh
 # Download the pinned upstream Fluidd release, verify sha256, and extract into
 # files/fluidd/. Run this once after cloning, or whenever VERSION is bumped.
+# NOTE: re-vendoring drops the AFC eject patch in assets/Dashboard-*.js; re-apply
+# it (see doc/CHANGELOG.md 0.1.2) and run the afc-lite frontend guard test.
 #
 # Usage: ./scripts/fetch-fluidd.sh
 

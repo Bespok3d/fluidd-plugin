@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3
+
+- Vendored Fluidd bumped v1.37.0 to v1.37.2. Notable upstream change for us:
+  the AFC panel can now show a filament name from `lane.filament_name` when no
+  Spoolman spool resolves (fluidd-core/fluidd#1860).
+- Re-applied the toolchanger Eject gating patch (`laneActive`) from 0.1.2 to
+  the new bundle; behavior unchanged.
+
 ## 0.1.2
 
 - AFC panel fix for toolchangers: the lane Eject button now enables only when
