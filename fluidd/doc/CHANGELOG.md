@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4
+
+- AFC panel: the lane Eject button is now also disabled while the printer is
+  actively printing, reusing Fluidd's own `printerPrinting` state so it matches
+  the Load/Unload buttons. Eject stays available while the print is paused, so
+  filament can still be swapped mid-print. Extends the existing `laneActive`
+  eject patch in the vendored bundle (no re-vendor; Fluidd stays v1.37.2).
+
 ## 0.1.3
 
 - Vendored Fluidd bumped v1.37.0 to v1.37.2. Notable upstream change for us:
