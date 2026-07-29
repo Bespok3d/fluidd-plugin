@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: Copyright (C) 2026 unlucio and the Bespok3d contributors
+# SPDX-License-Identifier: GPL-3.0-only
 # This plugin's own gate: it must pass from this repo's root, with no sibling repo cloned except
 # lib_bespok3d. This repo ships config, assets and shell only, so its gate is the shared detectors.
 set -uo pipefail
