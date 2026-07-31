@@ -6,7 +6,7 @@
   "description": "Swaps SM's outdated Fluidd for the current upstream release. You get input-shaper graphs, integrated config/G-code editors, tool-colour preview, modern mesh viz. Uninstall reverts to the SM-shipped copy automatically via overlayfs; no nginx config touched. Bleeding-edge build: adds the AFC \"Toolchanger Eject Mode\" toggle (Eject docks the mounted tool on a toolchanger).",
   "tagline": "Modern Fluidd v1.37.0: replaces the stock SM build.",
   "category": "ui",
-  "channel": "experiment",
+  "channel": "testing",
   "printer_specific": true,
   "changelog": "doc/CHANGELOG.md",
   "published_at": "2025-10-12",
