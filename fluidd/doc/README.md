@@ -16,13 +16,28 @@ The lane assignment dialog opens when you start a print from the file list. A pr
 slicer with "start printing after upload" begins on the printer with no browser involved, so nothing
 opened it and the file ran with whatever map was left over.
 
-Install the AFC Lite plugin and turn on its **Hold a print until the lane-to-tool map is made**
-setting, and the printer keeps that print from starting. Fluidd then opens the same dialog on the
+Install the AFC Lite plugin and turn on its **Filament to tools mapper** setting, and the printer
+keeps that print from starting. Fluidd then opens the same dialog on the
 file being held back, and its print button sets the map and starts it. The print waits as long as it
 takes, and cancelling the dialog drops it instead of starting it.
 
 Nothing changes without AFC Lite and that setting: the printer never holds a print, and starting one
 from the file list works exactly as before.
+
+## Hiding the tool buttons your printer has no lane for
+
+The U1's firmware keeps room for 32 logical tools and registers a macro for every one of them, so the
+tool row lists 32 buttons on a printer with 4 lanes.
+
+Turn on the plugin's **Hide unused tool buttons** setting and the row shows one button per lane the
+printer actually has. Nothing is removed from the printer: the tools are still there and a macro can
+still call them. The count comes from the printer, so a machine with a different number of lanes
+shows its own. Reload the page after changing the setting.
+
+## Configuration
+
+- **Fluidd port** (default `80`): the port Fluidd is served on.
+- **Hide unused tool buttons** (default `off`): see above.
 
 ## How it works
 

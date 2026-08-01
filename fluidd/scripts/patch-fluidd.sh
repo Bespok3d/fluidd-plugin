@@ -247,4 +247,36 @@ if [ "$channels_cache_busted" -eq 0 ]; then
   exit 1
 fi
 
+# 9. The tool row. The U1 registers a T0 to T31 gcode macro whatever it has lanes for, so the row
+#    lists 32 buttons on a 4 lane printer. The settings file the daemon renders at install says
+#    whether the plugin's "Hide unused tool buttons" setting is on and holds the rule; the row asks
+#    it, passing Fluidd's own extruder list so the count comes from the printer and never from a
+#    number written here. With the setting off, and on a bundle where the settings file never
+#    loaded, every tool is kept, which is upstream's own behaviour.
+install_file "Tool button rule" \
+  "$PLUGIN_DIR/files/b3d-tool-buttons.js.tmpl" \
+  "$PLUGIN_DIR/files/fluidd/b3d-tool-buttons.js"
+
+apply_patch "Tool button rule loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
+  '<script src="./b3d-afc-toolmap.js"></script>' \
+  '<script src="./b3d-afc-toolmap.js"></script><script src="./b3d-tool-buttons.js"></script>'
+
+# shellcheck disable=SC2016 # $typedGetters is a Vue property name and the backticks are JavaScript
+apply_patch "Tool row hides unused tools" "$DASHBOARD_CHUNK" \
+  'Object.keys(e).filter(e=>/^t\d+$/i.test(e))' \
+  'Object.keys(e).filter(toolCommand=>/^t\d+$/i.test(toolCommand)&&(window.b3dToolButtons?window.b3dToolButtons.keepsToolButton(toolCommand,this.$typedGetters[`printer/getExtruders`]):!0))'
+
+# 10. Fluidd's service worker serves index.html and the Dashboard chunk from its own cache, and only
+#     refetches a file when the revision string next to it changes. The chunk is listed with a null
+#     revision, which tells the worker its contents can never change; both of those files carry
+#     Bespok3d patches, so a browser that already holds this build would go on serving the old ones.
+#     Bump the revision strings whenever the patches above change.
+apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
+  '{"revision":"4b86906913a0847d07c33e3a67f2094d","url":"index.html"}' \
+  '{"revision":"b3d-index-html-1","url":"index.html"}'
+
+apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
+  "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
+  "{\"revision\":\"b3d-dashboard-1\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+
 echo "Done. All Bespok3d patches are present."

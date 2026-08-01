@@ -32,6 +32,12 @@
         "description": "HTTP port Fluidd is served on. Auto-assigned; the primary UI uses 80.",
         "required": false,
         "default": "80"
+      },
+      {
+        "name": "FLUIDD_HIDE_VIRTUAL_TOOLS",
+        "description": "Leave the tool buttons the printer has no lane for out of the tool row: on or off.",
+        "required": false,
+        "default": "off"
       }
     ]
   },
@@ -43,6 +49,19 @@
       "default": "80",
       "hint": "Auto-assigned. Make Fluidd primary to serve it on port 80.",
       "userEditable": true
+    },
+    {
+      "key": "FLUIDD_HIDE_VIRTUAL_TOOLS",
+      "label": "Hide unused tool buttons",
+      "type": "select",
+      "options": [
+        "off",
+        "on"
+      ],
+      "default": "off",
+      "hint": "Off by default. On, the tool row shows one button per lane the printer actually has, instead of all 32 the firmware keeps room for. The tools are still there and a macro can still call them. Reload the page after changing this.",
+      "userEditable": true,
+      "scope": "printer"
     }
   ],
   "permissions": [
@@ -57,6 +76,12 @@
       }
     ],
     "patches": [],
+    "templates": [
+      {
+        "from": "files/b3d-tool-buttons.js.tmpl",
+        "to": "files/fluidd/b3d-tool-buttons.js"
+      }
+    ],
     "start": []
   },
   "stop": [],

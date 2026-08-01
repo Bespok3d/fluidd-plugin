@@ -17,7 +17,7 @@
 - A print sent straight from the slicer with "start printing after upload" now opens that dialog
   too. Such a print starts on the printer with no browser involved, so nothing opened the dialog and
   the file ran with whatever lane-to-tool map was left over. With the AFC Lite plugin 0.1.10 or
-  newer and its **Hold a print until the lane-to-tool map is made** setting on, the printer holds
+  newer and its **Filament to tools mapper** setting on, the printer holds
   the print before it starts and this opens the dialog on the file being held. The dialog's print
   button releases that hold, cancelling drops the held print, and every browser with Fluidd open
   clears its own dialog when any one of them answers. Nothing changes for a print you start from the
@@ -30,6 +30,14 @@
   browser or a second tab. Snapmaker's firmware was answering Fluidd out of another tab's cached
   status, and that cache never holds the printer's configuration, so Fluidd found no extruders in
   it. Fluidd now asks in a way the firmware cannot answer from that cache.
+- New **Hide unused tool buttons** setting, off by default. The printer's firmware keeps room for 32
+  logical tools and registers a macro for each, so the tool row listed 32 buttons on a 4 lane
+  machine. With the setting on the row shows one button per lane the printer actually has. The tools
+  are still there and a macro can still call them, and the count comes from the printer rather than
+  from a number written into the plugin. Reload the page after changing it.
+- A browser that already had Fluidd open now picks up a Bespok3d patch instead of serving the old
+  page from its own cache. Fluidd's service worker is told the main page and the dashboard code can
+  never change, so a patched build reached only a browser that had never seen the printer before.
 - Patching the vendored bundle is now a script, `scripts/patch-fluidd.sh`, run automatically by
   `scripts/fetch-fluidd.sh`. A re-vendor can no longer silently drop a patch, and a patch whose
   upstream code moved fails the run instead. The gate runs the same script in `--verify` mode, so a
