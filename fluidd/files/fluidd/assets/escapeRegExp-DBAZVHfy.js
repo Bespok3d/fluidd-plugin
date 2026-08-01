@@ -1,0 +1,1 @@
+import{t as e}from"./toString-BN36OUXd.js";var t=/[\\^$.*+?()[\]{}|]/g,n=RegExp(t.source);function r(r){return r=e(r),r&&n.test(r)?r.replace(t,`\\$&`):r}export{r as t};

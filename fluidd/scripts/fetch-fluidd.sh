@@ -1,8 +1,10 @@
 #!/bin/sh
 # Download the pinned upstream Fluidd release, verify sha256, and extract into
 # files/fluidd/. Run this once after cloning, or whenever VERSION is bumped.
-# NOTE: re-vendoring drops the AFC eject patch in assets/Dashboard-*.js; re-apply
-# it (see doc/CHANGELOG.md 0.1.2) and run the afc-lite frontend guard test.
+# Re-vendoring wipes the tree, so it drops every Bespok3d patch. This script
+# re-applies them by calling ./scripts/patch-fluidd.sh at the end; that script
+# is the single record of what we change and why, and it fails loudly if a
+# minified chunk changed shape. After a bump, run the afc-lite frontend guard test.
 #
 # Usage: ./scripts/fetch-fluidd.sh
 
@@ -50,5 +52,7 @@ if [ ! -f "$TARGET_DIR/index.html" ]; then
   echo "ERROR: $TARGET_DIR/index.html missing after extract" >&2
   exit 1
 fi
+
+"$PLUGIN_DIR/scripts/patch-fluidd.sh"
 
 echo "Done. Fluidd ${FLUIDD_VERSION} extracted to $TARGET_DIR"

@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.1.5
+
+- Vendored Fluidd bumped v1.37.2 to v1.37.3. Upstream adds an AFC print-start dialog, a
+  retract/extrude indicator, French, Slovenian and Thai translations, and a rename fix.
+- Re-applied the toolchanger Eject gating patch (`laneActive`, plus the actively-printing lock from
+  0.1.4) to the new bundle; behavior unchanged. Upstream PR fluidd-core/fluidd#1899, which would
+  retire this patch, is still open, so the patch stays.
+- The new AFC print-start dialog now opens on a U1, names each tool's filament, and shows each tool
+  in the colour the file was sliced with. Snapmaker's Moonraker publishes the per-tool weight list
+  as `filament_weight` where Fluidd reads `filament_weights`, so the dialog never opened and the
+  print fell through to the Spoolman spool-selection panel; it also publishes filament names and
+  types as one semicolon-joined string rather than a list, so each row showed a single character;
+  and the swatches used to show the spools sitting in the printer's lanes, which matched the file
+  only by luck.
+- A print sent straight from the slicer with "start printing after upload" now opens that dialog
+  too. Such a print starts on the printer with no browser involved, so nothing opened the dialog and
+  the file ran with whatever lane-to-tool map was left over. With the AFC Lite plugin 0.1.10 or
+  newer and its **Hold a print until the lane-to-tool map is made** setting on, the printer holds
+  the print before it starts and this opens the dialog on the file being held. The dialog's print
+  button releases that hold, cancelling drops the held print, and every browser with Fluidd open
+  clears its own dialog when any one of them answers. Nothing changes for a print you start from the
+  file list.
+- The AFC panel no longer lists T0 through T30 on the first lane. The printer keeps room for 32
+  logical tools and every one your file does not use reads as fed by lane E0, so the dialog now
+  tells the printer how many tools the file uses. That part needs AFC Lite 0.1.10 or newer; with an
+  older one the panel keeps listing the unused tools.
+- The Tune page and the extruder controls no longer empty out when the printer is open in a second
+  browser or a second tab. Snapmaker's firmware was answering Fluidd out of another tab's cached
+  status, and that cache never holds the printer's configuration, so Fluidd found no extruders in
+  it. Fluidd now asks in a way the firmware cannot answer from that cache.
+- Patching the vendored bundle is now a script, `scripts/patch-fluidd.sh`, run automatically by
+  `scripts/fetch-fluidd.sh`. A re-vendor can no longer silently drop a patch, and a patch whose
+  upstream code moved fails the run instead. The gate runs the same script in `--verify` mode, so a
+  bundle missing a patch is a red build.
+
 ## 0.1.4
 
 - AFC panel: the lane Eject button is now also disabled while the printer is

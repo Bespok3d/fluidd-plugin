@@ -30,5 +30,9 @@ echo "fluidd-plugin gate"
 workflow_pinning_check "$REPO_ROOT"
 em_dash_check "$REPO_ROOT"
 shellcheck_repo "$REPO_ROOT"
+# The vendored bundle is upstream's build plus this plugin's own patches. Re-vendoring wipes the
+# tree, so the gate proves every patch is still in it.
+run_check "Bespok3d patches in the Fluidd bundle" \
+    "$REPO_ROOT/fluidd/scripts/patch-fluidd.sh" --verify
 
 gate_summary || exit 1

@@ -8,11 +8,26 @@ Swaps the Snapmaker-shipped Fluidd web UI for the current upstream release.
 - Integrated config and G-code editors.
 - Tool-colour preview.
 - A modern bed-mesh visualizer.
+- A print-start dialog that maps the file's tools onto your AFC lanes before the print begins.
+
+## Mapping lanes for a print sent from the slicer
+
+The lane assignment dialog opens when you start a print from the file list. A print sent from the
+slicer with "start printing after upload" begins on the printer with no browser involved, so nothing
+opened it and the file ran with whatever map was left over.
+
+Install the AFC Lite plugin and turn on its **Hold a print until the lane-to-tool map is made**
+setting, and the printer keeps that print from starting. Fluidd then opens the same dialog on the
+file being held back, and its print button sets the map and starts it. The print waits as long as it
+takes, and cancelling the dialog drops it instead of starting it.
+
+Nothing changes without AFC Lite and that setting: the printer never holds a print, and starting one
+from the file list works exactly as before.
 
 ## How it works
 
 Snapmaker serves `/home/lava/fluidd` through nginx. This plugin symlinks that path to a
-Bespok3d-managed copy of upstream Fluidd v1.37.2. Nothing in the nginx config is touched.
+Bespok3d-managed copy of upstream Fluidd v1.37.3. Nothing in the nginx config is touched.
 
 ## Uninstall
 

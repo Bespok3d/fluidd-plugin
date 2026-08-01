@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1-experiment
+
+- The Tune page and the extruder controls no longer empty out when the printer is open in a second
+  browser or a second tab. Snapmaker's firmware was answering Fluidd out of another tab's cached
+  status, and that cache never holds the printer's configuration, so Fluidd found no extruders in
+  it. Fluidd now asks in a way the firmware cannot answer from that cache.
+
 ## 0.1.2
 
 - AFC panel fix for toolchangers: the lane Eject button now enables only when

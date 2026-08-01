@@ -1,7 +1,7 @@
 {
   "name": "fluidd",
   "title": "Fluidd",
-  "version": "0.2.0-experiment",
+  "version": "0.2.1-experiment",
   "author": "bespoked",
   "description": "Swaps SM's outdated Fluidd for the current upstream release. You get input-shaper graphs, integrated config/G-code editors, tool-colour preview, modern mesh viz. Uninstall reverts to the SM-shipped copy automatically via overlayfs; no nginx config touched. Bleeding-edge build: adds the AFC \"Toolchanger Eject Mode\" toggle (Eject docks the mounted tool on a toolchanger).",
   "tagline": "Modern Fluidd v1.37.0: replaces the stock SM build.",
