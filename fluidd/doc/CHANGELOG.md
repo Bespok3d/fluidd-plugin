@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.6
+
+- New FilaMan spool card, bottom right corner, showing the filament name and colour assigned to
+  each extruder (falling back to the bare spool id if the filament lookup fails), a button to
+  clear that assignment, and a button to manually repeat the startup repush instead of restarting
+  Moonraker. No spool picker: assigning a spool to an extruder stays FilaMan's own job. FilaMan is
+  an NFC/RFID filament tracking system with its own Moonraker component (the separate filaman
+  Bespok3d plugin), independent of Spoolman, so the card polls that component's own endpoints
+  directly rather than reading Fluidd's Spoolman panel or its Vuex store. Adds one script tag and
+  one new file to the vendored bundle; no Vuex or dialog patch, and no manifest or config change.
+  Inert on a printer without the filaman plugin installed: the card's first request fails and it
+  never appears. The repush button needs filaman 0.2.0 or newer (its `/repush` endpoint); on an
+  older filaman it silently does nothing. Fluidd stays v1.37.3.
+
 ## 0.1.5
 
 - Vendored Fluidd bumped v1.37.2 to v1.37.3. Upstream adds an AFC print-start dialog, a
