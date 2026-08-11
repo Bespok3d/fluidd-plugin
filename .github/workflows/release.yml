@@ -42,8 +42,6 @@ jobs:
           signing-key: ${{ secrets.REGISTRY_SIGNING_KEY }}
           bake: 'false'
           atom-repo: ${{ github.repository }}
-          # Caller curation: a dev-only variant whose payload is local and gitignored, never published.
-          exclude-dirs: fluidd-bleeding-edge
 
       - uses: Bespok3d/main-index/.github/actions/register-atoms@3d4fa2adb4f39aa22b7112ff26fd9522db7b4827  # main @ 2026-07-26
         with:

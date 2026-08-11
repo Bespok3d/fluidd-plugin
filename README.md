@@ -41,9 +41,8 @@ npx b3-builder build --source ./fluidd --atom-repo Bespok3d/fluidd-plugin
 Bump `fluidd/manifest.json` `version` and push the tag `plugin-<name>-v<version>` naming that plugin
 and that exact number. A push to `main` publishes nothing, and the run is refused if the tag and the
 manifest disagree. CI runs the `Bespok3d/b3-builder` Action, which packs the `.b3` and cuts a
-release; the `register-atoms` action from `Bespok3d/main-index` then registers the atom. The build
-excludes `fluidd-bleeding-edge`, so only `fluidd` is published. This repo contributes atoms only and
-publishes no list of its own. Secrets: `MAIN_INDEX_TOKEN` (contents:write on main-index) and
+release; the `register-atoms` action from `Bespok3d/main-index` then registers the atom. This repo
+contributes atoms only and publishes no list of its own. Secrets: `MAIN_INDEX_TOKEN` (contents:write on main-index) and
 `REGISTRY_SIGNING_KEY` (the org registry key the `b3-builder` Action signs each `.b3` and atom
 with).
 

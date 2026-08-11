@@ -41,8 +41,6 @@ jobs:
           bake: 'false'
           publish: 'false'
           atom-repo: ${{ github.repository }}
-          # Caller curation: a dev-only variant whose payload is local and gitignored, never published.
-          exclude-dirs: fluidd-bleeding-edge
 
       - uses: actions/upload-artifact@v4
         with:
