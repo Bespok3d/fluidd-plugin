@@ -9,6 +9,7 @@ Swaps the Snapmaker-shipped Fluidd web UI for the current upstream release.
 - Tool-colour preview.
 - A modern bed-mesh visualizer.
 - A print-start dialog that maps the file's tools onto your AFC lanes before the print begins.
+- A small FilaMan spool card, if the separate filaman Moonraker plugin is installed. See below.
 
 ## Mapping lanes for a print sent from the slicer
 
@@ -33,6 +34,24 @@ Turn on the plugin's **Hide unused tool buttons** setting and the row shows one 
 printer actually has. Nothing is removed from the printer: the tools are still there and a macro can
 still call them. The count comes from the printer, so a machine with a different number of lanes
 shows its own. Reload the page after changing the setting.
+
+## FilaMan spool card
+
+FilaMan is an NFC/RFID filament tracking system with its own Moonraker component, independent of
+Spoolman. With the separate filaman Bespok3d plugin installed, a small card in the bottom right
+corner shows the filament assigned to each extruder (name and colour, falling back to the bare
+spool id if that lookup fails), a button to clear the assignment, and a **repush** button that
+resends every assigned spool to the printer, the same thing that already happens once at boot.
+Use it if a channel still shows as unknown after startup, instead of restarting Moonraker.
+
+There is no spool picker on this card: assigning a spool to an extruder is FilaMan's own job (an
+NFC tap, or its own app), not something this card does for you.
+
+The card talks directly to the filaman component's own endpoints; it does not use Fluidd's
+Spoolman panel. The repush button needs filaman 0.2.0 or newer; on an older filaman it silently
+does nothing.
+
+Nothing appears without that plugin installed: the card's first request fails and it never shows.
 
 ## Configuration
 

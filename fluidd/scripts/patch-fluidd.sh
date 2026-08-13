@@ -273,10 +273,23 @@ apply_patch "Tool row hides unused tools" "$DASHBOARD_CHUNK" \
 #     Bump the revision strings whenever the patches above change.
 apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   '{"revision":"4b86906913a0847d07c33e3a67f2094d","url":"index.html"}' \
-  '{"revision":"b3d-index-html-1","url":"index.html"}'
+  '{"revision":"b3d-index-html-2","url":"index.html"}'
 
 apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
   "{\"revision\":\"b3d-dashboard-1\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+
+# 11. A small dashboard card for FilaMan, an NFC/RFID filament tracking system with its own
+#     Moonraker component, independent of Spoolman. The card polls that component's own REST
+#     endpoints and renders itself, so it needs no store or Vuex patch, only a script tag. Inert
+#     on a printer without the filaman Moonraker component: its first request fails, the card is
+#     never created, and it stops polling.
+install_file "FilaMan card" \
+  "$PLUGIN_DIR/patches/filaman-card.js" \
+  "$PLUGIN_DIR/files/fluidd/b3d-filaman-card.js"
+
+apply_patch "FilaMan card loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
+  '<script src="./b3d-tool-buttons.js"></script>' \
+  '<script src="./b3d-tool-buttons.js"></script><script src="./b3d-filaman-card.js"></script>'
 
 echo "Done. All Bespok3d patches are present."
