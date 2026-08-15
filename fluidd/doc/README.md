@@ -34,6 +34,24 @@ printer actually has. Nothing is removed from the printer: the tools are still t
 still call them. The count comes from the printer, so a machine with a different number of lanes
 shows its own. Reload the page after changing the setting.
 
+## The spool bar under a lane
+
+On a printer running the Bespok3d Spoolman plugin, every lane in the AFC panel carries a small bar
+with three buttons:
+
+- **Add spool**: makes a new Spoolman spool from the tag on the lane, ties the tag to it, and puts
+  it on the lane.
+- **Update spool data**: pick a spool, and the tag's data is written onto it.
+- **Link spool**: pick a spool, and the tag is tied to it.
+
+Picking a spool uses Fluidd's own spool list, the same one the lane's reel opens.
+
+The bar opens itself on a lane whose spool Spoolman does not know, and sits collapsed as a thin
+strip otherwise. Click the strip to open or close it.
+
+Without the Spoolman plugin there is no bar and no buttons in the panel header: those are its
+commands, and the panel looks exactly as upstream draws it.
+
 ## Configuration
 
 - **Fluidd port** (default `80`): the port Fluidd is served on.

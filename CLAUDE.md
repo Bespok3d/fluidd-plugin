@@ -11,7 +11,8 @@ If you are a non-Claude tool, `AGENTS.md` points you here.
 
 ## What this repo ships
 
-This repo ships one plugin, `fluidd`: a modern Fluidd v1.37.3 build that replaces the stock SM build.
+This repo ships one plugin, `fluidd`: a modern Fluidd build (the pinned version is in `fluidd/VERSION`)
+that replaces the stock SM build.
 It is a solo Bespok3d plugin repo, publishing a single index atom into `Bespok3d/main-index/atoms/`.
 The plugin carries config, assets, and shell only, no Python.
 

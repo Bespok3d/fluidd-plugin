@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.6
+
+- Fluidd itself is now 1.37.4, up from 1.37.3. It brings a Snapmaker theme you can pick under
+  Settings, typing an AFC lane's filament details by hand, and toolchanger support in the AFC panel.
+  Every Bespok3d change is on top of it as before.
+- The AFC lane card shows the filament name the printer put in the lane. With the Bespok3d Spoolman
+  plugin that is the brand, the material and the sub-type, "SUNLU PETG Basic", the same name you read
+  on the slot in the slicer. The card used to repeat the Spoolman filament name on its own, and its
+  tooltip said the brand twice.
+- The lane's spool picker lists what Spoolman has now. A spool you added or edited in Spoolman while
+  the page was open used to be missing from it, and the only way to see it was to reload the page.
+- Three buttons in the AFC panel header, next to the unit name: "Clear all spools", "Detect spools"
+  and "Clear active". They fix what the printer thinks is loaded without typing gcode. "Clear all
+  spools" asks before it clears.
+- A bar of three buttons under every lane: add spool, write the tag onto a spool, link the tag to a
+  spool. Add spool makes a new Spoolman spool out of the tag on the lane and puts it on the lane. The
+  other two ask you to pick a spool from the list Fluidd already shows, then write the tag's data onto
+  it or tie the tag to it. The bar opens itself on a lane whose spool Spoolman does not know, and sits
+  collapsed as a thin strip otherwise; click the strip to open or close it, and the arrow on it points
+  the way the bar will move.
+- Add spool tells you when the new spool has no weight in Spoolman, and asks you to open that filament
+  in Spoolman and give it one. Without a weight nothing can track what is left on the spool.
+- The header buttons and the lane bar show up only on a printer running the Bespok3d Spoolman plugin,
+  because they are its commands. Without it the panel looks exactly as it did.
+- A lane's filament dialog asks for a weight only when the lane is on a Spoolman spool, which is where
+  the weight comes from. The printer does not take a weight typed by hand, so on a lane without a
+  spool the box is gone and you can set the colour and the material on their own.
+
 ## 0.1.5
 
 - Vendored Fluidd bumped v1.37.2 to v1.37.3. Upstream adds an AFC print-start dialog, a

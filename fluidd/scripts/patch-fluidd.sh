@@ -220,6 +220,17 @@ CACHE_BUST_UPSTREAM='printerObjectsSubscribe(e,t){return $(`printer.objects.subs
 # shellcheck disable=SC2016 # $( and the backticks are JavaScript in the bundle, not shell
 CACHE_BUST_PATCHED='printerObjectsSubscribe(e,t){return $(`printer.objects.subscribe`,{dispatch:`printer/onPrinterObjectsSubscribe`,...t,params:{objects:Object.assign({},e,{["b3d_cachebust_"+Math.random().toString(36).slice(2,10)]:null})}})}'
 
+# 8a. The same cache answers printer.objects.list, which is the call Fluidd makes first and the one
+#     it needs before it knows what to subscribe to. That request carries no objects at all, so
+#     there is nothing in it to vary: a second browser, or a reload, asks a question the firmware
+#     has already answered for someone else and waits. The page then draws its frame with no
+#     printer objects behind it. Moonraker ignores a parameter it does not know, checked on the
+#     bench printer, so a throwaway parameter makes the request new without changing the answer.
+# shellcheck disable=SC2016 # $( and the backticks are JavaScript in the bundle, not shell
+OBJECT_LIST_UPSTREAM='printerObjectsList(e){return $(`printer.objects.list`,{dispatch:`printer/onPrinterObjectsList`,...e})}'
+# shellcheck disable=SC2016 # $( and the backticks are JavaScript in the bundle, not shell
+OBJECT_LIST_PATCHED='printerObjectsList(e){return $(`printer.objects.list`,{dispatch:`printer/onPrinterObjectsList`,...e,params:{["b3d_cachebust_"+Math.random().toString(36).slice(2,10)]:null}})}'
+
 channels_cache_busted=0
 for socket_chunk in "$REPO_ROOT"/*/files/fluidd/assets/socketActions-*.js; do
   [ -f "$socket_chunk" ] || continue
@@ -231,13 +242,17 @@ for socket_chunk in "$REPO_ROOT"/*/files/fluidd/assets/socketActions-*.js; do
     "$CACHE_BUST_UPSTREAM" \
     "$CACHE_BUST_PATCHED"
 
+  apply_patch "Moonraker cache bust on the object list ($channel)" "$socket_chunk" \
+    "$OBJECT_LIST_UPSTREAM" \
+    "$OBJECT_LIST_PATCHED"
+
   # Fluidd's service worker precaches the hashed chunk with a null revision, which tells it the URL
   # can never change its contents. A browser that already holds this build would go on serving the
   # unpatched chunk from its own cache forever; giving the entry a revision is what makes it fetch
   # ours. Bump the revision string whenever the patch above changes.
   apply_patch "Moonraker cache bust served fresh ($channel)" "${socket_chunk%/assets/*}/sw.js" \
     "{\"revision\":null,\"url\":\"assets/$(basename "$socket_chunk")\"}" \
-    "{\"revision\":\"b3d-cachebust-1\",\"url\":\"assets/$(basename "$socket_chunk")\"}"
+    "{\"revision\":\"b3d-cachebust-2\",\"url\":\"assets/$(basename "$socket_chunk")\"}"
 
   channels_cache_busted=$((channels_cache_busted + 1))
 done
@@ -266,17 +281,102 @@ apply_patch "Tool row hides unused tools" "$DASHBOARD_CHUNK" \
   'Object.keys(e).filter(e=>/^t\d+$/i.test(e))' \
   'Object.keys(e).filter(toolCommand=>/^t\d+$/i.test(toolCommand)&&(window.b3dToolButtons?window.b3dToolButtons.keepsToolButton(toolCommand,this.$typedGetters[`printer/getExtruders`]):!0))'
 
+# 9b. Which name the AFC lane card shows. Upstream reads the name off the Spoolman record the
+#     browser has cached and only falls back to the lane's own filament_name when that record is
+#     missing, so the label the printer pushes into the lane never reaches the card while Spoolman
+#     answers. The Bespok3d Spoolman helper pushes the brand and the product line into that lane
+#     field on purpose, because the card already prints the material and the colour on their own
+#     lines. Read the lane first and keep upstream's Spoolman name as the fallback, so a printer
+#     without the helper shows exactly what it showed before.
+apply_patch "AFC lane name" "$INDEX_CHUNK" \
+  'filamentName:r?.filament?.name||t?.filament_name||void 0,' \
+  'filamentName:t?.filament_name||r?.filament?.name||void 0,'
+
+# 9c. The lane card's hover tooltip prints the Spoolman vendor and then the name. With 9b the name
+#     already opens with the brand, so the tooltip read "ELEGOO, ELEGOO Translucent". Print the
+#     vendor only when the name does not already start with it.
+apply_patch "AFC lane tooltip vendor" "$DASHBOARD_CHUNK" \
+  'e.spoolFilamentVendor?[e._v(' \
+  'e.spoolFilamentVendor&&e.spoolFilamentName?.indexOf(e.spoolFilamentVendor)!==0?[e._v('
+
+# 9d. The Bespok3d Spoolman buttons in the AFC unit header. The Spoolman Klipper helper registers
+#     the SH_ gcode commands and Klipper publishes every command it has registered, so the rule file
+#     below draws a button only for a command this printer actually answers. On a printer without
+#     that plugin, and on a bundle where the rule file never loaded, the header is upstream's own.
+install_file "AFC Spoolman header buttons" \
+  "$PLUGIN_DIR/patches/afc-spoolman-header.js" \
+  "$PLUGIN_DIR/files/fluidd/b3d-afc-spoolman-header.js"
+
+apply_patch "AFC Spoolman header buttons loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
+  '<script src="./b3d-tool-buttons.js"></script>' \
+  '<script src="./b3d-tool-buttons.js"></script><script src="./b3d-afc-spoolman-header.js"></script>'
+
+# shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
+apply_patch "AFC Spoolman header" "$DASHBOARD_CHUNK" \
+  't(me),e._l(e.hubs,function(e){return t(`afc-card-unit-hub`,{key:e,attrs:{name:e}})})' \
+  't(me),window.b3dAfcSpoolmanHeader?window.b3dAfcSpoolmanHeader.headerButtons(t,e):[],e._l(e.hubs,function(e){return t(`afc-card-unit-hub`,{key:e,attrs:{name:e}})})'
+
+# 9e. The Bespok3d Spoolman bar under every AFC lane. Same gate as the header buttons: the rule file
+#     draws a button only for an SH_ command this printer answers, so a printer without the Spoolman
+#     helper, and a bundle where the rule file never loaded, get the lane exactly as upstream drew
+#     it. The two buttons that need a spool open Fluidd's own spool selection dialog.
+install_file "AFC lane Spoolman bar" \
+  "$PLUGIN_DIR/patches/afc-lane-toolbar.js" \
+  "$PLUGIN_DIR/files/fluidd/b3d-afc-lane-toolbar.js"
+
+apply_patch "AFC lane Spoolman bar loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
+  '<script src="./b3d-afc-spoolman-header.js"></script>' \
+  '<script src="./b3d-afc-spoolman-header.js"></script><script src="./b3d-afc-lane-toolbar.js"></script>'
+
+# shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
+apply_patch "AFC lane Spoolman bar drawn" "$DASHBOARD_CHUNK" \
+  ':e._e()],1)},[],!1,null,`f383496d`,null,null).exports' \
+  ':e._e(),window.b3dAfcLaneToolbar?window.b3dAfcLaneToolbar.laneToolbar(t,e):null],1)},[],!1,null,`f383496d`,null,null).exports'
+
+# 9f. Fluidd's own message bar, reached by name. The lane bar says "Spool added" once the printer
+#     reports the new spool on the lane, and that message bar is where a Fluidd page says such
+#     things. Its bus is a module-local object with no way in from a script tag, so the app hands it
+#     to the window as it starts listening. Without this the lane bar just stays quiet.
+# shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
+apply_patch "Flash message bus reachable" "$INDEX_CHUNK" \
+  ',y.bus.$on(`flashMessage`,' \
+  ',window.b3dFlashBus=y,y.bus.$on(`flashMessage`,'
+
+# 9g. The lane filament dialog offers a weight box, and AFC Lite refuses SET_WEIGHT outright, so
+#     typing in it can only ever produce an error. A lane on a Spoolman spool keeps the box, because
+#     Spoolman is what owns that number; a lane without one loses it, and the dialog then sends only
+#     the colour and the material the user came to set. Upstream's own hasSpoolId getter is the
+#     condition, and the divider above the box goes with it so the dialog has no gap where it was.
+# shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
+apply_patch "Weight box only on a Spoolman spool" "$DASHBOARD_CHUNK" \
+  't(E,{staticClass:`my-3`}),t(F,{attrs:{title:e.$t(`app.afc.Weight`),"sub-title":e.$t(`app.afc.WeightSubtitle`)}},[t(u,{attrs:{placeholder:`1000`,dense:``,outlined:``,type:`number`,min:0,step:1,"hide-details":``},model:{value:e.weight,callback:function(t){e.weight=e._n(t)},expression:`weight`}})],1),' \
+  'e.hasSpoolId?[t(E,{staticClass:`my-3`}),t(F,{attrs:{title:e.$t(`app.afc.Weight`),"sub-title":e.$t(`app.afc.WeightSubtitle`)}},[t(u,{attrs:{placeholder:`1000`,dense:``,outlined:``,type:`number`,min:0,step:1,"hide-details":``},model:{value:e.weight,callback:function(t){e.weight=e._n(t)},expression:`weight`}})],1)]:e._e(),'
+
+# 9h. The lane's spool picker lists what the browser fetched from Spoolman when the page loaded, so
+#     a spool added or changed in Spoolman since is not in it and the only way to see it is to
+#     reload the page. Re-reading Spoolman as the picker opens is what keeps the list current.
+# shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
+apply_patch "Spool picker lists what Spoolman has now" "$DASHBOARD_CHUNK" \
+  'handleSelectSpool(){this.spoolmanSelection=!0,this.$typedCommit(`spoolman/setDialogState`,' \
+  'handleSelectSpool(){this.spoolmanSelection=!0,this.$typedDispatch(`spoolman/init`),this.$typedCommit(`spoolman/setDialogState`,'
+
 # 10. Fluidd's service worker serves index.html and the Dashboard chunk from its own cache, and only
 #     refetches a file when the revision string next to it changes. The chunk is listed with a null
 #     revision, which tells the worker its contents can never change; both of those files carry
 #     Bespok3d patches, so a browser that already holds this build would go on serving the old ones.
 #     Bump the revision strings whenever the patches above change.
 apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
-  '{"revision":"4b86906913a0847d07c33e3a67f2094d","url":"index.html"}' \
-  '{"revision":"b3d-index-html-1","url":"index.html"}'
+  '{"revision":"a9d26cce4609987c2d2175cb89f6630e","url":"index.html"}' \
+  '{"revision":"b3d-index-html-4","url":"index.html"}'
 
 apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
-  "{\"revision\":\"b3d-dashboard-1\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+  "{\"revision\":\"b3d-dashboard-6\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+
+# The index chunk carries patches 2, 3, 6, 7, 9b and 9f and is precached the same way, so it needs
+# the same revision string or a browser that already holds this build keeps serving the unpatched one.
+apply_patch "Patched app chunk served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
+  "{\"revision\":null,\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}" \
+  "{\"revision\":\"b3d-index-chunk-2\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
 
 echo "Done. All Bespok3d patches are present."
