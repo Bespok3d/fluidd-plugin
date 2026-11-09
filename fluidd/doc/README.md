@@ -60,7 +60,7 @@ commands, and the panel looks exactly as upstream draws it.
 ## How it works
 
 Snapmaker serves `/home/lava/fluidd` through nginx. This plugin symlinks that path to a
-Bespok3d-managed copy of upstream Fluidd v1.37.3. Nothing in the nginx config is touched.
+Bespok3d-managed copy of upstream Fluidd v1.37.7. Nothing in the nginx config is touched.
 
 ## Uninstall
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.7
+
+- Fluidd itself is now 1.37.7, up from 1.37.4. It brings a CSV export of the print history, grouped
+  buttons in console prompts, the MCU build configuration on the System page, and file browser
+  thumbnails that load as you scroll. Every Bespok3d change is on top of it as before.
+- The Set button in a lane's filament dialog works the way it did before. The new Fluidd greys Set out
+  until a weight is typed, but the printer reports no weight for a lane and refuses one typed in, so
+  Set no longer waits for a weight. You set the colour and the material, and press Set.
+
 ## 0.1.6
 
 - Fluidd itself is now 1.37.4, up from 1.37.3. It brings a Snapmaker theme you can pick under

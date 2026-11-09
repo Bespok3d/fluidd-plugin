@@ -152,7 +152,7 @@ apply_patch "AFC dialog trigger" "$INDEX_CHUNK" \
 #    a printer without the plugin is never sent a command it would reject.
 apply_patch "AFC dialog tool list" "$INDEX_CHUNK" \
   'get usedTools(){return(this.currentFile?.filament_weights??[]).reduce((e,t,n)=>(t>0&&e.push(n),e),[])}' \
-  'get usedTools(){let e=(this.currentFile?.filament_weights??this.currentFile?.filament_weight??[]).reduce((t,n,r)=>(n>0&&t.push(r),t),[]),b3dToolsInPlay=window.b3dAfcToolmap?.toolsInPlayDeclaration(e)??"";return b3dToolsInPlay&&w.printerGcodeScript(b3dToolsInPlay),e}'
+  'get usedTools(){let e=(this.currentFile?.filament_weights??this.currentFile?.filament_weight??[]).reduce((t,n,r)=>(n>0&&t.push(r),t),[]),b3dToolsInPlay=window.b3dAfcToolmap?.toolsInPlayDeclaration(e)??"";return b3dToolsInPlay&&T.printerGcodeScript(b3dToolsInPlay),e}'
 
 # 4. The per-tool row inside the dialog. Same field-name reason as 2, plus:
 #    Snapmaker's Moonraker publishes filament_name and filament_type as one
@@ -191,8 +191,8 @@ apply_patch "AFC toolmap watcher loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
 #    this is upstream's own behaviour.
 # shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
 apply_patch "AFC toolmap release" "$INDEX_CHUNK" \
-  'handlePrint(){this.filename&&(w.printerPrintStart(this.filename),' \
-  'handlePrint(){this.filename&&(window.b3dAfcToolmap?.releaseHeldPrint()?w.printerGcodeScript(`AFC_TOOLMAP_GO`):w.printerPrintStart(this.filename),'
+  'handlePrint(){this.filename&&(T.printerPrintStart(this.filename),' \
+  'handlePrint(){this.filename&&(window.b3dAfcToolmap?.releaseHeldPrint()?T.printerGcodeScript(`AFC_TOOLMAP_GO`):T.printerPrintStart(this.filename),'
 
 # 7. The dialog being dismissed. A held print waits for an answer and never starts by itself, so
 #    closing the dialog without printing has to tell the printer to drop it, or the file stays held
@@ -200,8 +200,8 @@ apply_patch "AFC toolmap release" "$INDEX_CHUNK" \
 #    print button is what closed the dialog, and on a bundle where the watcher never loaded.
 # shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
 apply_patch "AFC toolmap dismissal" "$INDEX_CHUNK" \
-  'onOpenChange(e){e&&this.filename&&this.currentFile==null&&w.serverFilesMetadata(this.filename)}' \
-  'onOpenChange(e){!e&&window.b3dAfcToolmap?.heldPrintWasAbandoned()&&w.printerGcodeScript(`AFC_TOOLMAP_CANCEL`),e&&this.filename&&this.currentFile==null&&w.serverFilesMetadata(this.filename)}'
+  'onOpenChange(e){e&&this.filename&&this.currentFile==null&&T.serverFilesMetadata(this.filename)}' \
+  'onOpenChange(e){!e&&window.b3dAfcToolmap?.heldPrintWasAbandoned()&&T.printerGcodeScript(`AFC_TOOLMAP_CANCEL`),e&&this.filename&&this.currentFile==null&&T.serverFilesMetadata(this.filename)}'
 
 # 8. Moonraker's subscription cache. Snapmaker's firmware answers printer.objects.subscribe out of
 #    another connection's cached status whenever every object asked for is already covered, and
@@ -313,8 +313,8 @@ apply_patch "AFC Spoolman header buttons loaded" "$PLUGIN_DIR/files/fluidd/index
 
 # shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
 apply_patch "AFC Spoolman header" "$DASHBOARD_CHUNK" \
-  't(me),e._l(e.hubs,function(e){return t(`afc-card-unit-hub`,{key:e,attrs:{name:e}})})' \
-  't(me),window.b3dAfcSpoolmanHeader?window.b3dAfcSpoolmanHeader.headerButtons(t,e):[],e._l(e.hubs,function(e){return t(`afc-card-unit-hub`,{key:e,attrs:{name:e}})})'
+  't(p),e._l(e.hubs,function(e){return t(`afc-card-unit-hub`,{key:e,attrs:{name:e}})})' \
+  't(p),window.b3dAfcSpoolmanHeader?window.b3dAfcSpoolmanHeader.headerButtons(t,e):[],e._l(e.hubs,function(e){return t(`afc-card-unit-hub`,{key:e,attrs:{name:e}})})'
 
 # 9e. The Bespok3d Spoolman bar under every AFC lane. Same gate as the header buttons: the rule file
 #     draws a button only for an SH_ command this printer answers, so a printer without the Spoolman
@@ -339,8 +339,8 @@ apply_patch "AFC lane Spoolman bar drawn" "$DASHBOARD_CHUNK" \
 #     to the window as it starts listening. Without this the lane bar just stays quiet.
 # shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
 apply_patch "Flash message bus reachable" "$INDEX_CHUNK" \
-  ',y.bus.$on(`flashMessage`,' \
-  ',window.b3dFlashBus=y,y.bus.$on(`flashMessage`,'
+  ',St.bus.$on(`flashMessage`,' \
+  ',window.b3dFlashBus=St,St.bus.$on(`flashMessage`,'
 
 # 9g. The lane filament dialog offers a weight box, and AFC Lite refuses SET_WEIGHT outright, so
 #     typing in it can only ever produce an error. A lane on a Spoolman spool keeps the box, because
@@ -349,8 +349,16 @@ apply_patch "Flash message bus reachable" "$INDEX_CHUNK" \
 #     condition, and the divider above the box goes with it so the dialog has no gap where it was.
 # shellcheck disable=SC2016 # the backticks are a JavaScript string literal in the bundle, not shell
 apply_patch "Weight box only on a Spoolman spool" "$DASHBOARD_CHUNK" \
-  't(E,{staticClass:`my-3`}),t(F,{attrs:{title:e.$t(`app.afc.Weight`),"sub-title":e.$t(`app.afc.WeightSubtitle`)}},[t(u,{attrs:{placeholder:`1000`,dense:``,outlined:``,type:`number`,min:0,step:1,"hide-details":``},model:{value:e.weight,callback:function(t){e.weight=e._n(t)},expression:`weight`}})],1),' \
-  'e.hasSpoolId?[t(E,{staticClass:`my-3`}),t(F,{attrs:{title:e.$t(`app.afc.Weight`),"sub-title":e.$t(`app.afc.WeightSubtitle`)}},[t(u,{attrs:{placeholder:`1000`,dense:``,outlined:``,type:`number`,min:0,step:1,"hide-details":``},model:{value:e.weight,callback:function(t){e.weight=e._n(t)},expression:`weight`}})],1)]:e._e(),'
+  't(A,{staticClass:`my-3`}),t(I,{attrs:{title:e.$t(`app.afc.Weight`),"sub-title":e.$t(`app.afc.WeightSubtitle`)}},[t(m,{attrs:{placeholder:`1000`,dense:``,outlined:``,type:`number`,min:0,step:1,"hide-details":``},model:{value:e.weight,callback:function(t){e.weight=e._n(t)},expression:`weight`}})],1),' \
+  'e.hasSpoolId?[t(A,{staticClass:`my-3`}),t(I,{attrs:{title:e.$t(`app.afc.Weight`),"sub-title":e.$t(`app.afc.WeightSubtitle`)}},[t(m,{attrs:{placeholder:`1000`,dense:``,outlined:``,type:`number`,min:0,step:1,"hide-details":``},model:{value:e.weight,callback:function(t){e.weight=e._n(t)},expression:`weight`}})],1)]:e._e(),'
+
+#     Upstream will not let Set be pressed until a weight is typed. AFC Lite reports no lane weight,
+#     so the box always opens at 0, and it refuses any weight typed in; a lane without a spool has
+#     no box at all. Set therefore goes back to not waiting for a weight, as it did before this
+#     version, and the dialog still sends SET_WEIGHT only when the weight was changed.
+apply_patch "Set button does not wait for a weight" "$DASHBOARD_CHUNK" \
+  'get disableSetBtn(){return!this.material||!this.weight||this.weight<0||!this.color' \
+  'get disableSetBtn(){return!this.material||this.weight<0||!this.color'
 
 # 9h. The lane's spool picker lists what the browser fetched from Spoolman when the page loaded, so
 #     a spool added or changed in Spoolman since is not in it and the only way to see it is to
@@ -366,17 +374,17 @@ apply_patch "Spool picker lists what Spoolman has now" "$DASHBOARD_CHUNK" \
 #     Bespok3d patches, so a browser that already holds this build would go on serving the old ones.
 #     Bump the revision strings whenever the patches above change.
 apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
-  '{"revision":"a9d26cce4609987c2d2175cb89f6630e","url":"index.html"}' \
-  '{"revision":"b3d-index-html-4","url":"index.html"}'
+  '{"revision":"249f6ab4c70e3e9776b5b58b83f64072","url":"index.html"}' \
+  '{"revision":"b3d-index-html-5","url":"index.html"}'
 
 apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
-  "{\"revision\":\"b3d-dashboard-6\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+  "{\"revision\":\"b3d-dashboard-8\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
 
 # The index chunk carries patches 2, 3, 6, 7, 9b and 9f and is precached the same way, so it needs
 # the same revision string or a browser that already holds this build keeps serving the unpatched one.
 apply_patch "Patched app chunk served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}" \
-  "{\"revision\":\"b3d-index-chunk-2\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
+  "{\"revision\":\"b3d-index-chunk-3\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
 
 echo "Done. All Bespok3d patches are present."

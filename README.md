@@ -5,7 +5,7 @@
 ![printer](https://img.shields.io/badge/printer-Snapmaker%20U1-informational)
 ![stock firmware](https://img.shields.io/badge/stock%20firmware-no%20flashing-brightgreen)
 
-Modern Fluidd v1.37.3: replaces the stock SM build.
+Modern Fluidd v1.37.7: replaces the stock SM build.
 
 A solo Bespok3d plugin repo: it ships one plugin (`fluidd`) and publishes a single index atom into `Bespok3d/main-index/atoms/`.
 
