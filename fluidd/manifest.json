@@ -1,7 +1,7 @@
 {
   "name": "fluidd",
   "title": "Fluidd",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "sw_version": "1.37.7",
   "author": "bespoked",
   "description": "Swaps SM's outdated Fluidd for the current upstream release. You get input-shaper graphs, integrated config/G-code editors, tool-colour preview, modern mesh viz. Uninstall restores the SM-shipped copy automatically; no nginx config touched.",

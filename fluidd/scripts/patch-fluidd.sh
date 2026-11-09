@@ -370,10 +370,10 @@ apply_patch "Spool picker lists what Spoolman has now" "$DASHBOARD_CHUNK" \
 
 # 9i. Every colour of a multi colour spool. Spoolman files a dual, tri colour or gradient spool as a
 #     list of colours and leaves its single colour empty, and upstream reads only the single colour,
-#     so such a spool was drawn white everywhere. The rule file below paints the spool icons and the
-#     AFC lane reel in stripes, one per colour, taking whichever of Spoolman and the lane's tag names
-#     more colours. The places that can take one colour only, such as the progress bars, take the
-#     first. On a bundle where the rule file never loaded, an icon keeps the first colour.
+#     so such a spool was drawn white everywhere. The rule file below paints the spool icons, the
+#     Spoolman card's remaining-weight bar and the AFC lane reel in stripes, one per colour, taking
+#     whichever of Spoolman and the lane's tag names more colours. On a bundle where the rule file
+#     never loaded, an icon or a bar keeps the first colour.
 install_file "Spool colours rule" \
   "$PLUGIN_DIR/patches/spool-colours.js" \
   "$PLUGIN_DIR/files/fluidd/b3d-spool-colours.js"
@@ -417,6 +417,16 @@ apply_patch "Spool picker colours" "$INDEX_CHUNK" \
   't(j,{staticClass:`spool-icon`,attrs:{color:e.getSpoolColor(r),size:`42`}},' \
   't(j,{staticClass:`spool-icon`,class:window.b3dSpoolColours?.iconClass(e.$typedState.printer.printer,r),attrs:{color:e.getSpoolColor(r),size:`42`}},'
 
+#     The Spoolman card's remaining-weight bar is drawn twice, under the header while the card is
+#     open on a smaller screen and as all the card shows while it is collapsed, with the same text,
+#     so this one patch reaches both. The bar asks for barClass only if the rule file has it: the
+#     rule file is not precached, so a browser can still hold the copy from fluidd 0.1.8, which has
+#     none.
+# shellcheck disable=SC2016 # $typedState is a Vue property name, not shell
+apply_patch "Spoolman bar colours" "$DASHBOARD_CHUNK" \
+  't(le,{attrs:{value:e.activeSpool.progress,height:6,color:e.getSpoolColor(e.activeSpool)}})' \
+  't(le,{class:window.b3dSpoolColours?.barClass?.(e.$typedState.printer.printer,e.activeSpool),attrs:{value:e.activeSpool.progress,height:6,color:e.getSpoolColor(e.activeSpool)}})'
+
 # shellcheck disable=SC2016 # the backticks are JavaScript string literals in the bundle, not shell
 apply_patch "AFC lane reel colours" "$DASHBOARD_CHUNK" \
   't(`afc-filament-reel`,{staticClass:`filamentSpool`,attrs:{percent:e.spoolPercent,color:e.spoolColor},' \
@@ -433,7 +443,7 @@ apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
 
 apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
-  "{\"revision\":\"b3d-dashboard-9\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+  "{\"revision\":\"b3d-dashboard-10\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
 
 # The index chunk carries patches 2, 3, 6, 7, 9b, 9f and 9i and is precached the same way, so it needs
 # the same revision string or a browser that already holds this build keeps serving the unpatched one.

@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Every colour of a multi colour spool, in the Fluidd the plugin ships. This runs the shipped spool
 // colours rule against a stand-in page and proves what a user sees: a multi colour spool is drawn in
-// stripes, the source naming more colours wins whichever it is, a one colour spool keeps upstream's
-// look, and the bundle actually calls the rule from every spool view it was written for.
+// stripes, on its icons and on the Spoolman card's remaining-weight bar, the source naming more
+// colours wins whichever it is, a one colour spool keeps upstream's look, and the bundle actually
+// calls the rule from every spool view it was written for.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import vm from 'node:vm'
@@ -19,6 +20,7 @@ const shippedRule = readFileSync(join(pluginDir, 'files/fluidd/b3d-spool-colours
 const shippedPage = readFileSync(join(pluginDir, 'files/fluidd/index.html'), 'utf8')
 const shippedDashboard = readFileSync(join(pluginDir, 'files/fluidd/assets/Dashboard-BLuHn2av.js'), 'utf8')
 const shippedAppChunk = readFileSync(join(pluginDir, 'files/fluidd/assets/index-KkJYnUSX.js'), 'utf8')
+const shippedVuetifyStyles = readFileSync(join(pluginDir, 'files/fluidd/assets/vuetify-Cm30cL1j.css'), 'utf8')
 
 const TAG_SPOOL_ID = 89
 const UPSTREAM_COLOUR = '#ffffff'
@@ -86,7 +88,7 @@ function paintedGradients(page) {
   return paintStore ? paintStore.children[0].children : []
 }
 
-function iconRules(page) {
+function stripeRules(page) {
   const ruleSheet = page.head.children[0]
   return ruleSheet ? ruleSheet.children.map((ruleText) => ruleText.text).join('\n') : ''
 }
@@ -107,11 +109,11 @@ function checkTagSingleSpoolmanMulti() {
     'a single colour tag flattens a three colour Spoolman spool on its lane reel')
   const [gradient] = paintedGradients(page)
   expect(gradient && JSON.stringify(stripeColoursOf(gradient)) ===
-    JSON.stringify(['#FF0000', '#FF0000', '#00FF00', '#00FF00', '#0000FF', '#0000FF']),
+    JSON.stringify(['#ff0000', '#ff0000', '#00ff00', '#00ff00', '#0000ff', '#0000ff']),
     'the stripes are not one hard edged band per Spoolman colour')
   expect(paintedGradients(page).length === 1,
     'the same colours are painted into the page more than once')
-  expect(iconRules(page).includes(
+  expect(stripeRules(page).includes(
     '.b3d-spool-colours-ff0000-00ff00-0000ff-icon .v-icon__svg{fill:url(#b3d-spool-colours-ff0000-00ff00-0000ff)}'),
     'no rule fills a multi colour spool icon with its stripes')
 }
@@ -139,6 +141,79 @@ function checkOneColourKeepsUpstream() {
   expect(page.body.children.length === 0, 'a page with one colour spools only is painted on')
 }
 
+function checkSpoolmanBarStripes() {
+  const { spoolColours, page } = loadShippedRule()
+  const spool = spoolmanSpool(['#FF0000', '#00FF00', '#0000FF'])
+  const barClass = spoolColours.barClass(printerWithLane(laneWithTag(['#FFFFFF'])), spool)
+  expect(barClass === 'b3d-spool-colours-ff0000-00ff00-0000ff-bar',
+    'a three colour spool does not give its remaining-weight bar stripes')
+  const firstEdge = `${100 / 3}%`
+  const secondEdge = `${200 / 3}%`
+  const stripes = `linear-gradient(to right,#ff0000 0%,#ff0000 ${firstEdge},#00ff00 ${firstEdge},` +
+    `#00ff00 ${secondEdge},#0000ff ${secondEdge},#0000ff 100%)`
+  const bar = '.b3d-spool-colours-ff0000-00ff00-0000ff-bar'
+  const filledPart = ' .v-progress-linear__determinate'
+  const fadedTrack = ' .v-progress-linear__background'
+  const reversedBar = `${bar}.v-progress-linear--reverse`
+  expect(stripeRules(page).includes(
+    `${bar}${filledPart},${bar}${fadedTrack}` +
+    `{background-image:${stripes};background-size:100cqw 100%;transition-property:width,left,right}`),
+    'the remaining-weight bar is not filled with one hard edged band per colour, in the icon order')
+  expect(stripeRules(page).includes(`@supports (container-type:inline-size){${bar}{container-type:inline-size}`),
+    'a browser without container sizes squeezes a full set of stripes into each part of the bar')
+  expect(stripeRules(page).includes(`${bar}${fadedTrack},${reversedBar}${filledPart}{background-position:right}`) &&
+    stripeRules(page).includes(`${reversedBar}${fadedTrack}{background-position:left}`),
+    'the filled part and the faded track of the remaining-weight bar each squeeze in their own set of stripes')
+}
+
+function checkIconAloneWritesNoBarRule() {
+  const { spoolColours, page } = loadShippedRule()
+  spoolColours.iconClass(printerWithLane(laneWithTag([])), spoolmanSpool(['#FF0000', '#00FF00']))
+  expect(!stripeRules(page).includes('-bar'), 'a spool icon writes a rule for a bar no spool shows')
+}
+
+function checkOneColourBarKeepsUpstream() {
+  const { spoolColours, page } = loadShippedRule()
+  const spool = spoolmanSpool(['#FF0000'])
+  expect(spoolColours.barClass(printerWithLane(laneWithTag(['#FF0000'])), spool) === undefined,
+    'a one colour spool gives its remaining-weight bar stripes')
+  expect(spoolColours.barClass(printerWithLane(laneWithTag(['#FF0000'])), null) === undefined,
+    'no active spool gives the remaining-weight bar stripes')
+  expect(page.head.children.length === 0, 'a one colour remaining-weight bar is painted on')
+}
+
+function checkBarColoursStayColours() {
+  const { spoolColours, page } = loadShippedRule()
+  const spool = spoolmanSpool(['#ff0000}body{display:none', '#00FF00'])
+  expect(spoolColours.barClass(printerWithLane(laneWithTag([])), spool) === undefined,
+    'a spool colour that is not hex gives the remaining-weight bar stripes')
+  expect(!stripeRules(page).includes('display:none'),
+    'a spool colour writes its own text into the page style sheet')
+  const rgbAndHexColours = spoolmanSpool(['rgb(255,0,0)', '#00FF00'])
+  expect(spoolColours.barClass(printerWithLane(laneWithTag([])), rgbAndHexColours) === undefined,
+    'a spool colour that is not hex is drawn on the remaining-weight bar as some other colour')
+  const oneBadColourOfThree = spoolmanSpool(['#FF0000', 'rgb(0,0,255)', '#00FF00'])
+  expect(spoolColours.iconClass(printerWithLane(laneWithTag([])), oneBadColourOfThree) ===
+    'b3d-spool-colours-ff0000-00ff00-icon',
+    'one colour that is not hex takes the stripes off the colours that are')
+}
+
+function checkIconAndBarAgree() {
+  const { spoolColours, page } = loadShippedRule()
+  const spool = spoolmanSpool(['#FF0000'])
+  const tagWithoutHash = laneWithTag(['FF0000', '00ff0080'])
+  const barClass = spoolColours.barClass(printerWithLane(tagWithoutHash), spool)
+  const iconClass = spoolColours.iconClass(printerWithLane(tagWithoutHash), spool)
+  const reelFill = spoolColours.laneReelFill(UPSTREAM_COLOUR, spool, tagWithoutHash)
+  expect(reelFill === 'url(#b3d-spool-colours-ff0000-00ff0080)',
+    'the lane reel is filled with colours the icon does not show')
+  expect(barClass === 'b3d-spool-colours-ff0000-00ff0080-bar' && iconClass === 'b3d-spool-colours-ff0000-00ff0080-icon',
+    'a tag colour written without a hash, or with four digits, is not drawn in stripes')
+  const stopColours = paintedGradients(page)[0].children.map((stop) => stop.attributes['stop-color'])
+  expect(stopColours.join(',') === '#ff0000,#ff0000,#00ff0080,#00ff0080',
+    'the spool icon is filled with colours the bar does not show')
+}
+
 function checkOtherLaneSaysNothing() {
   const { spoolColours } = loadShippedRule()
   const spool = spoolmanSpool(['#FF0000'])
@@ -159,6 +234,15 @@ function checkTheBundleCallsTheRule() {
     'a dashboard spool icon does not ask for its stripes')
   expect(shippedAppChunk.includes('class:window.b3dSpoolColours?.iconClass('),
     'the spool picker icon does not ask for its stripes')
+  expect(shippedDashboard.split('class:window.b3dSpoolColours?.barClass?.(').length - 1 === 2,
+    'a Spoolman card remaining-weight bar does not ask for its stripes')
+  expect(!shippedDashboard.includes('t(le,{attrs:{value:e.activeSpool.progress,'),
+    'the Spoolman card still draws a remaining-weight bar in one colour')
+  expect(['.v-progress-linear__determinate{', '.v-progress-linear__background{',
+    '.v-progress-linear--reverse .v-progress-linear__background{left:auto;right:0}',
+    '.v-progress-linear--reverse .v-progress-linear__determinate{left:auto;right:0}'].every(
+    (barPart) => shippedVuetifyStyles.includes(barPart)),
+    'the shipped Vuetify bar no longer has the parts the stripes are laid on')
   expect(shippedDashboard.includes('window.b3dSpoolColours.laneReelFill(e.spoolColor,e.spool,e.lane)'),
     'the AFC lane reel does not ask for its stripes')
 }
@@ -166,6 +250,11 @@ function checkTheBundleCallsTheRule() {
 checkTagSingleSpoolmanMulti()
 checkTagMultiSpoolmanSingle()
 checkOneColourKeepsUpstream()
+checkSpoolmanBarStripes()
+checkOneColourBarKeepsUpstream()
+checkBarColoursStayColours()
+checkIconAloneWritesNoBarRule()
+checkIconAndBarAgree()
 checkOtherLaneSaysNothing()
 checkTheBundleCallsTheRule()
 

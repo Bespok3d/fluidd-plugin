@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9
+
+- The remaining weight bar on the Spoolman card shows all the colours of a multi colour spool, in
+  stripes, like the spool icons. It used to show only the first colour.
+
 ## 0.1.8
 
 - A multi colour spool (dual colour, tri colour, gradient silk) shows all its colours. The spool
