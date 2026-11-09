@@ -2,27 +2,19 @@
 
 ## 0.1.9
 
-- The remaining weight bar on the Spoolman card shows all the colours of a multi colour spool, in
-  stripes, like the spool icons. It used to show only the first colour.
-
-## 0.1.8
-
-- A multi colour spool (dual colour, tri colour, gradient silk) shows all its colours. The spool
-  icons on the tool buttons, in the tool menu, on the Spoolman card and in the spool picker, and the
-  reel on an AFC lane, are drawn in stripes, one per colour. They used to be drawn white, because
-  Spoolman keeps such a spool's colours in a list and Fluidd only read the single colour.
-- When Spoolman and the spool's tag disagree on how many colours it has, the one naming more colours
-  is shown, so a multi colour spool is never shown as a single colour.
-- Places that can show one colour only, like the progress bars, show the spool's first colour.
-
-## 0.1.7
-
 - Fluidd itself is now 1.37.7, up from 1.37.4. It brings a CSV export of the print history, grouped
   buttons in console prompts, the MCU build configuration on the System page, and file browser
   thumbnails that load as you scroll. Every Bespok3d change is on top of it as before.
 - The Set button in a lane's filament dialog works the way it did before. The new Fluidd greys Set out
   until a weight is typed, but the printer reports no weight for a lane and refuses one typed in, so
   Set no longer waits for a weight. You set the colour and the material, and press Set.
+- A multi colour spool (dual colour, tri colour, gradient silk) shows all its colours, in stripes,
+  one per colour: the spool icons on the tool buttons, in the tool menu, on the Spoolman card and in
+  the spool picker, the remaining weight bar on the Spoolman card, and the reel on an AFC lane. They
+  used to be drawn white, because Fluidd only read a spool's single colour and Spoolman keeps the
+  colours of such a spool in a list.
+- When Spoolman and the spool's tag disagree on how many colours it has, the one naming more colours
+  is shown, so a multi colour spool is never shown as a single colour.
 
 ## 0.1.6
 
