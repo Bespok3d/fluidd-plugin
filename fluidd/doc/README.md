@@ -7,6 +7,8 @@ Swaps the Snapmaker-shipped Fluidd web UI for the current upstream release.
 - Input-shaper graphs.
 - Integrated config and G-code editors.
 - Tool-colour preview.
+- Multi colour spools drawn in all their colours, on the tool buttons, the Spoolman card, the spool
+  picker and the AFC lane reels.
 - A modern bed-mesh visualizer.
 - A print-start dialog that maps the file's tools onto your AFC lanes before the print begins.
 

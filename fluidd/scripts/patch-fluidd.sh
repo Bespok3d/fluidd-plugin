@@ -368,6 +368,60 @@ apply_patch "Spool picker lists what Spoolman has now" "$DASHBOARD_CHUNK" \
   'handleSelectSpool(){this.spoolmanSelection=!0,this.$typedCommit(`spoolman/setDialogState`,' \
   'handleSelectSpool(){this.spoolmanSelection=!0,this.$typedDispatch(`spoolman/init`),this.$typedCommit(`spoolman/setDialogState`,'
 
+# 9i. Every colour of a multi colour spool. Spoolman files a dual, tri colour or gradient spool as a
+#     list of colours and leaves its single colour empty, and upstream reads only the single colour,
+#     so such a spool was drawn white everywhere. The rule file below paints the spool icons and the
+#     AFC lane reel in stripes, one per colour, taking whichever of Spoolman and the lane's tag names
+#     more colours. The places that can take one colour only, such as the progress bars, take the
+#     first. On a bundle where the rule file never loaded, an icon keeps the first colour.
+install_file "Spool colours rule" \
+  "$PLUGIN_DIR/patches/spool-colours.js" \
+  "$PLUGIN_DIR/files/fluidd/b3d-spool-colours.js"
+
+apply_patch "Spool colours rule loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
+  '<script src="./b3d-afc-lane-toolbar.js"></script>' \
+  '<script src="./b3d-afc-lane-toolbar.js"></script><script src="./b3d-spool-colours.js"></script>'
+
+# shellcheck disable=SC2016 # the backticks are JavaScript string literals in the bundle, not shell
+SPOOL_COLOUR_UPSTREAM='getSpoolColor(e){return e?.filament.color_hex??(this.$vuetify.theme.dark?`#fff`:`#000`)}'
+# shellcheck disable=SC2016 # the backticks are JavaScript string literals in the bundle, not shell
+SPOOL_COLOUR_PATCHED='getSpoolColor(e){return e?.filament.colors?.[0]??(this.$vuetify.theme.dark?`#fff`:`#000`)}'
+
+apply_patch "Spool colour on the dashboard" "$DASHBOARD_CHUNK" \
+  "$SPOOL_COLOUR_UPSTREAM" \
+  "$SPOOL_COLOUR_PATCHED"
+
+apply_patch "Spool colour in the spool picker" "$INDEX_CHUNK" \
+  "$SPOOL_COLOUR_UPSTREAM" \
+  "$SPOOL_COLOUR_PATCHED"
+
+# shellcheck disable=SC2016 # $typedState is a Vue property name and the backticks are JavaScript
+apply_patch "Tool button spool colours" "$DASHBOARD_CHUNK" \
+  't(f,{staticClass:`mr-1 spool-icon`,attrs:{color:e.getSpoolColor(e.getSpoolById(n.spoolId))}},' \
+  't(f,{staticClass:`mr-1 spool-icon`,class:window.b3dSpoolColours?.iconClass(e.$typedState.printer.printer,e.getSpoolById(n.spoolId)),attrs:{color:e.getSpoolColor(e.getSpoolById(n.spoolId))}},'
+
+#     The Spoolman card draws the active spool twice, small in its menu and large beside the details,
+#     and both icons start with the same text, so this one patch reaches both.
+# shellcheck disable=SC2016 # $typedState is a Vue property name and the backticks are JavaScript
+apply_patch "Active spool colours" "$DASHBOARD_CHUNK" \
+  't(f,{staticClass:`spool-icon`,attrs:{color:e.getSpoolColor(e.activeSpool)' \
+  't(f,{staticClass:`spool-icon`,class:window.b3dSpoolColours?.iconClass(e.$typedState.printer.printer,e.activeSpool),attrs:{color:e.getSpoolColor(e.activeSpool)'
+
+# shellcheck disable=SC2016 # $typedState is a Vue property name and the backticks are JavaScript
+apply_patch "Tool menu spool colours" "$DASHBOARD_CHUNK" \
+  't(f,{staticClass:`spool-icon`,attrs:{color:e.getSpoolColor(e.getSpoolById(n.variables.spool_id))}},' \
+  't(f,{staticClass:`spool-icon`,class:window.b3dSpoolColours?.iconClass(e.$typedState.printer.printer,e.getSpoolById(n.variables.spool_id)),attrs:{color:e.getSpoolColor(e.getSpoolById(n.variables.spool_id))}},'
+
+# shellcheck disable=SC2016 # $typedState is a Vue property name and the backticks are JavaScript
+apply_patch "Spool picker colours" "$INDEX_CHUNK" \
+  't(j,{staticClass:`spool-icon`,attrs:{color:e.getSpoolColor(r),size:`42`}},' \
+  't(j,{staticClass:`spool-icon`,class:window.b3dSpoolColours?.iconClass(e.$typedState.printer.printer,r),attrs:{color:e.getSpoolColor(r),size:`42`}},'
+
+# shellcheck disable=SC2016 # the backticks are JavaScript string literals in the bundle, not shell
+apply_patch "AFC lane reel colours" "$DASHBOARD_CHUNK" \
+  't(`afc-filament-reel`,{staticClass:`filamentSpool`,attrs:{percent:e.spoolPercent,color:e.spoolColor},' \
+  't(`afc-filament-reel`,{staticClass:`filamentSpool`,attrs:{percent:e.spoolPercent,color:window.b3dSpoolColours?window.b3dSpoolColours.laneReelFill(e.spoolColor,e.spool,e.lane):e.spoolColor},'
+
 # 10. Fluidd's service worker serves index.html and the Dashboard chunk from its own cache, and only
 #     refetches a file when the revision string next to it changes. The chunk is listed with a null
 #     revision, which tells the worker its contents can never change; both of those files carry
@@ -375,16 +429,16 @@ apply_patch "Spool picker lists what Spoolman has now" "$DASHBOARD_CHUNK" \
 #     Bump the revision strings whenever the patches above change.
 apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   '{"revision":"249f6ab4c70e3e9776b5b58b83f64072","url":"index.html"}' \
-  '{"revision":"b3d-index-html-5","url":"index.html"}'
+  '{"revision":"b3d-index-html-6","url":"index.html"}'
 
 apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
-  "{\"revision\":\"b3d-dashboard-8\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
+  "{\"revision\":\"b3d-dashboard-9\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
 
-# The index chunk carries patches 2, 3, 6, 7, 9b and 9f and is precached the same way, so it needs
+# The index chunk carries patches 2, 3, 6, 7, 9b, 9f and 9i and is precached the same way, so it needs
 # the same revision string or a browser that already holds this build keeps serving the unpatched one.
 apply_patch "Patched app chunk served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}" \
-  "{\"revision\":\"b3d-index-chunk-3\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
+  "{\"revision\":\"b3d-index-chunk-4\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
 
 echo "Done. All Bespok3d patches are present."

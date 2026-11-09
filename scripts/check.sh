@@ -50,5 +50,9 @@ run_check "lane toolbar" \
 # picker was opened.
 run_check "spool picker refresh" \
     bash "$REPO_ROOT/scripts/test-spool-picker-refresh.sh" "$REPO_ROOT/fluidd"
+# A dual, tri colour or gradient spool is drawn in all its colours, taking whichever of Spoolman and
+# the lane's tag names more of them, and a one colour spool looks exactly as upstream draws it.
+run_check "multi colour spools" \
+    node "$REPO_ROOT/scripts/test-spool-colours.mjs" "$REPO_ROOT/fluidd"
 
 gate_summary || exit 1

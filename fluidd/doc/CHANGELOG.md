@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.8
+
+- A multi colour spool (dual colour, tri colour, gradient silk) shows all its colours. The spool
+  icons on the tool buttons, in the tool menu, on the Spoolman card and in the spool picker, and the
+  reel on an AFC lane, are drawn in stripes, one per colour. They used to be drawn white, because
+  Spoolman keeps such a spool's colours in a list and Fluidd only read the single colour.
+- When Spoolman and the spool's tag disagree on how many colours it has, the one naming more colours
+  is shown, so a multi colour spool is never shown as a single colour.
+- Places that can show one colour only, like the progress bars, show the spool's first colour.
+
 ## 0.1.7
 
 - Fluidd itself is now 1.37.7, up from 1.37.4. It brings a CSV export of the print history, grouped
