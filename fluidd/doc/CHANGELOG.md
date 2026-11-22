@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Fluidd itself is now 1.38.1, up from 1.37.7. It brings a G-code preview coloured by feature, speed,
+  fan or temperature, firmware updates from the web page, steadier reconnection to the printer, and
+  a Klipper restart that works when Klipper is not ready. Every Bespok3d change is on top of it as
+  before.
+
 ## 0.1.9
 
 - Fluidd itself is now 1.37.7, up from 1.37.4. It brings a CSV export of the print history, grouped

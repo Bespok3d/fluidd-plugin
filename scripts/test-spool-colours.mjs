@@ -5,7 +5,7 @@
 // stripes, on its icons and on the Spoolman card's remaining-weight bar, the source naming more
 // colours wins whichever it is, a one colour spool keeps upstream's look, and the bundle actually
 // calls the rule from every spool view it was written for.
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import vm from 'node:vm'
 
@@ -18,9 +18,22 @@ if (!pluginDir) {
 const authoredRule = readFileSync(join(pluginDir, 'patches/spool-colours.js'), 'utf8')
 const shippedRule = readFileSync(join(pluginDir, 'files/fluidd/b3d-spool-colours.js'), 'utf8')
 const shippedPage = readFileSync(join(pluginDir, 'files/fluidd/index.html'), 'utf8')
-const shippedDashboard = readFileSync(join(pluginDir, 'files/fluidd/assets/Dashboard-BLuHn2av.js'), 'utf8')
-const shippedAppChunk = readFileSync(join(pluginDir, 'files/fluidd/assets/index-KkJYnUSX.js'), 'utf8')
-const shippedVuetifyStyles = readFileSync(join(pluginDir, 'files/fluidd/assets/vuetify-Cm30cL1j.css'), 'utf8')
+const shippedAssetsDir = join(pluginDir, 'files/fluidd/assets')
+
+// A chunk name carries upstream's content hash, so it is found by its stable prefix.
+function readShippedChunk(prefix, extension) {
+  const chunkNames = readdirSync(shippedAssetsDir).filter(
+    (fileName) => fileName.startsWith(`${prefix}-`) && fileName.endsWith(extension))
+  if (chunkNames.length !== 1) {
+    console.error(`expected one ${prefix} chunk in the vendored bundle, found ${chunkNames.length}`)
+    process.exit(1)
+  }
+  return readFileSync(join(shippedAssetsDir, chunkNames[0]), 'utf8')
+}
+
+const shippedDashboard = readShippedChunk('Dashboard', '.js')
+const shippedAppChunk = readShippedChunk('index', '.js')
+const shippedVuetifyStyles = readShippedChunk('vuetify', '.css')
 
 const TAG_SPOOL_ID = 89
 const UPSTREAM_COLOUR = '#ffffff'
@@ -236,7 +249,7 @@ function checkTheBundleCallsTheRule() {
     'the spool picker icon does not ask for its stripes')
   expect(shippedDashboard.split('class:window.b3dSpoolColours?.barClass?.(').length - 1 === 2,
     'a Spoolman card remaining-weight bar does not ask for its stripes')
-  expect(!shippedDashboard.includes('t(le,{attrs:{value:e.activeSpool.progress,'),
+  expect(!shippedDashboard.includes('t(Te,{attrs:{value:e.activeSpool.progress,'),
     'the Spoolman card still draws a remaining-weight bar in one colour')
   expect(['.v-progress-linear__determinate{', '.v-progress-linear__background{',
     '.v-progress-linear--reverse .v-progress-linear__background{left:auto;right:0}',

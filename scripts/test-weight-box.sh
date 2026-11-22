@@ -12,9 +12,9 @@ PLUGIN_DIR="${1:?usage: test-weight-box.sh <plugin-dir>}"
 SERVICE_WORKER="$PLUGIN_DIR/files/fluidd/sw.js"
 
 # shellcheck disable=SC2016 # the backticks are JavaScript string literals in the bundle, not shell
-WEIGHT_ROW='t(I,{attrs:{title:e.$t(`app.afc.Weight`)'
+WEIGHT_ROW='t(p,{attrs:{title:e.$t(`app.afc.Weight`)'
 # shellcheck disable=SC2016 # as above
-WEIGHT_ROW_ON_A_SPOOLMAN_SPOOL='e.hasSpoolId?[t(A,{staticClass:`my-3`}),'"$WEIGHT_ROW"
+WEIGHT_ROW_ON_A_SPOOLMAN_SPOOL='e.hasSpoolId?[t(L,{staticClass:`my-3`}),'"$WEIGHT_ROW"
 # The getter that decides whether Set can be pressed, read up to the end of its one expression.
 SET_BUTTON_RULE='get disableSetBtn\(\)\{return[^}]*\}'
 

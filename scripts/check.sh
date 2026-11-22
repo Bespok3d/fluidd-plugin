@@ -54,5 +54,9 @@ run_check "spool picker refresh" \
 # the lane's tag names more of them, and a one colour spool looks exactly as upstream draws it.
 run_check "multi colour spools" \
     node "$REPO_ROOT/scripts/test-spool-colours.mjs" "$REPO_ROOT/fluidd"
+# The AFC print dialog tells the printer how many tools a file uses only once the file is known,
+# never "none" while its metadata is still loading.
+run_check "tool count waits for the file" \
+    node "$REPO_ROOT/scripts/test-tools-in-play.mjs" "$REPO_ROOT/fluidd"
 
 gate_summary || exit 1
