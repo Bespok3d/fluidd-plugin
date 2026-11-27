@@ -6,6 +6,10 @@
   fan or temperature, firmware updates from the web page, steadier reconnection to the printer, and
   a Klipper restart that works when Klipper is not ready. Every Bespok3d change is on top of it as
   before.
+- A power device switched from the Power menu or the top bar's power button shows a turning icon
+  until the printer confirms the switch, and takes no clicks meanwhile. A switch the device has to
+  confirm, such as a Panda PWR's USB port, takes a second or two, and the button used to look as if
+  the click had been ignored. If no answer comes, the button is usable again after 30 seconds.
 
 ## 0.1.9
 

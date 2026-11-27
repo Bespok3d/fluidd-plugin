@@ -12,6 +12,13 @@ Swaps the Snapmaker-shipped Fluidd web UI for the current upstream release.
 - A modern bed-mesh visualizer.
 - A print-start dialog that maps the file's tools onto your AFC lanes before the print begins.
 
+## Power devices while they switch
+
+Switching a power device from the Power menu or the top bar's power button waits for the printer to
+confirm it, which for a device that answers over the network, such as a Panda PWR's USB port, takes
+a second or two. Meanwhile the power icon turns and the control takes no clicks. If no answer comes,
+the control is usable again after 30 seconds.
+
 ## Mapping lanes for a print sent from the slicer
 
 The lane assignment dialog opens when you start a print from the file list. A print sent from the

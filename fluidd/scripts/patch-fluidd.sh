@@ -435,6 +435,30 @@ apply_patch "AFC lane reel colours" "$DASHBOARD_CHUNK" \
   't(`afc-filament-reel`,{staticClass:`filamentSpool`,attrs:{percent:e.spoolPercent,color:e.spoolColor},' \
   't(`afc-filament-reel`,{staticClass:`filamentSpool`,attrs:{percent:e.spoolPercent,color:window.b3dSpoolColours?window.b3dSpoolColours.laneReelFill(e.spoolColor,e.spool,e.lane):e.spoolColor},'
 
+# 9j. A power device while its switch is on its way. Fluidd keeps a wait named after the device
+#     until Moonraker answers, and a switch the device has to confirm takes a second or two. Upstream
+#     marks the Power menu's row as loading, which a list row does not draw, and the top bar's power
+#     button shows nothing at all, so a click looked ignored and invited another. The rule file below
+#     turns the power icon into a turning one and takes no clicks until the answer comes, or for 30
+#     seconds at most. On a bundle where the rule file never loaded, both are upstream's own.
+install_file "Power switch rule" \
+  "$PLUGIN_DIR/patches/power-toggle.js" \
+  "$PLUGIN_DIR/files/fluidd/b3d-power-toggle.js"
+
+apply_patch "Power switch rule loaded" "$PLUGIN_DIR/files/fluidd/index.html" \
+  '<script src="./b3d-spool-colours.js"></script>' \
+  '<script src="./b3d-spool-colours.js"></script><script src="./b3d-power-toggle.js"></script>'
+
+# shellcheck disable=SC2016 # $waits is a Vue property name and the backticks are JavaScript
+apply_patch "Power menu row while switching" "$INDEX_CHUNK" \
+  'attrs:{disabled:n.status===`error`||n.status===`init`||e.printerPrinting&&n.locked_while_printing,loading:e.hasWait(`${e.$waits.onDevicePowerToggle}/${n.device}`)},on:{click:function(t){return e.togglePowerDevice(n)}}},[t(A,[t(N,[e._v(e._s(e.getPowerButtonText(n)))])],1),t(ct,[t(k,[e._v(e._s(e.getPowerIcon(n)))])],1)],1)' \
+  'attrs:{disabled:n.status===`error`||n.status===`init`||e.printerPrinting&&n.locked_while_printing||!!window.b3dPowerToggle?.isSwitching(e,n.device),loading:e.hasWait(`${e.$waits.onDevicePowerToggle}/${n.device}`)},on:{click:function(t){return e.togglePowerDevice(n)}}},[t(A,[t(N,[e._v(e._s(e.getPowerButtonText(n)))])],1),t(ct,[t(k,{class:window.b3dPowerToggle?.iconClass(e,n.device)},[e._v(e._s(window.b3dPowerToggle?window.b3dPowerToggle.icon(e,n.device,e.getPowerIcon(n)):e.getPowerIcon(n)))])],1)],1)'
+
+# shellcheck disable=SC2016 # $powerOn and $powerOff are icon names and the backticks are JavaScript
+apply_patch "Top bar power button while switching" "$INDEX_CHUNK" \
+  'attrs:{icon:``,text:``,disabled:e.topNavPowerDeviceDisabled},on:{click:function(t){return e.handlePowerToggle()}}},`app-btn`,r,!1),n),[t(k,[e._v(` `+e._s(e.topNavPowerDeviceOn?`$powerOn`:`$powerOff`)+` `)])],1)' \
+  'attrs:{icon:``,text:``,disabled:e.topNavPowerDeviceDisabled||!!window.b3dPowerToggle?.isSwitching(e,window.b3dPowerToggle.topBarDeviceName(e))},on:{click:function(t){return e.handlePowerToggle()}}},`app-btn`,r,!1),n),[t(k,{class:window.b3dPowerToggle?.iconClass(e,window.b3dPowerToggle.topBarDeviceName(e))},[e._v(` `+e._s(window.b3dPowerToggle?window.b3dPowerToggle.icon(e,window.b3dPowerToggle.topBarDeviceName(e),e.topNavPowerDeviceOn?`$powerOn`:`$powerOff`):e.topNavPowerDeviceOn?`$powerOn`:`$powerOff`)+` `)])],1)'
+
 # 10. Fluidd's service worker serves index.html and the Dashboard chunk from its own cache, and only
 #     refetches a file when the revision string next to it changes. The chunk is listed with a null
 #     revision, which tells the worker its contents can never change; both of those files carry
@@ -442,16 +466,17 @@ apply_patch "AFC lane reel colours" "$DASHBOARD_CHUNK" \
 #     Bump the revision strings whenever the patches above change.
 apply_patch "Patched page served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   '{"revision":"d559f7a553da21fd94152ad78aa7e92e","url":"index.html"}' \
-  '{"revision":"b3d-index-html-7","url":"index.html"}'
+  '{"revision":"b3d-index-html-8","url":"index.html"}'
 
 apply_patch "Patched tool row served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}" \
   "{\"revision\":\"b3d-dashboard-11\",\"url\":\"assets/$(basename "$DASHBOARD_CHUNK")\"}"
 
-# The index chunk carries patches 2, 3, 6, 7, 9b, 9f and 9i and is precached the same way, so it needs
-# the same revision string or a browser that already holds this build keeps serving the unpatched one.
+# The index chunk carries patches 2, 3, 6, 7, 9b, 9f, 9i and 9j and is precached the same way, so it
+# needs the same revision string or a browser that already holds this build keeps serving the
+# unpatched one.
 apply_patch "Patched app chunk served fresh" "$PLUGIN_DIR/files/fluidd/sw.js" \
   "{\"revision\":null,\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}" \
-  "{\"revision\":\"b3d-index-chunk-5\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
+  "{\"revision\":\"b3d-index-chunk-6\",\"url\":\"assets/$(basename "$INDEX_CHUNK")\"}"
 
 echo "Done. All Bespok3d patches are present."

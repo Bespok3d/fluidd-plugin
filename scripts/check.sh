@@ -59,4 +59,9 @@ run_check "multi colour spools" \
 run_check "tool count waits for the file" \
     node "$REPO_ROOT/scripts/test-tools-in-play.mjs" "$REPO_ROOT/fluidd"
 
+# A power device whose switch is on its way turns its icon and takes no clicks, in the Power menu and
+# on the top bar's power button, and never stays locked past the limit.
+run_check "power switch while waiting" \
+    node "$REPO_ROOT/scripts/test-power-toggle.mjs" "$REPO_ROOT/fluidd"
+
 gate_summary || exit 1
