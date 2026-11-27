@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // A power device while its switch is on its way: the Power menu's row and the top bar's power button
 // show a turning icon and take no clicks until Moonraker answers, and never for longer than the
-// limit, since a wait is left behind when the connection drops mid-switch. This runs the rule file
+// limit, in case Moonraker never answers. This runs the rule file
 // the plugin ships against a stand-in page and checks that the bundle draws both controls with it.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'

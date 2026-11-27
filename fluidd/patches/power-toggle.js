@@ -5,9 +5,9 @@
 // nothing at all. Here both show a turning icon in place of the power icon, and take no clicks,
 // until the answer comes.
 //
-// The wait is only ever removed by Moonraker's answer: a connection lost mid-switch leaves it
-// behind. So a control stays locked for at most SWITCH_WAIT_LIMIT_MS, and then is drawn and
-// clickable as upstream draws it, waiting or not.
+// Fluidd removes the wait when Moonraker answers, and drops every wait when the connection drops.
+// A Moonraker that never answers would still leave it open, so a control stays locked for at most
+// SWITCH_WAIT_LIMIT_MS, and then is drawn and clickable as upstream draws it, waiting or not.
 //
 // The waits are read through Fluidd's own names for them, which patch-fluidd.sh never sees: a
 // Fluidd that renamed them would still take the patches. So a page without them reads every device
